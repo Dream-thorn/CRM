@@ -1,1 +1,1 @@
-CRM
+CRM (customer relationship management) 客户管理系统
