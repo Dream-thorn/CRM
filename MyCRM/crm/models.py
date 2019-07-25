@@ -314,6 +314,7 @@ class Department(models.Model):
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     # 用户名
     username = models.EmailField(
+        # verbose_name='用户名',
         max_length=255,
         unique=True,
     )

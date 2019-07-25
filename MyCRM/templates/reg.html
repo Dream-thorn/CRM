@@ -1,0 +1,95 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>注册</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="{% static 'reg/css/ie10-viewport-bug-workaround.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{% static 'reg/css/signin.css' %}" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="{% static 'reg/js/ie-emulation-modes-warning.js' %}"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <form class="form-horizontal" novalidate action="" method="post">
+                <h2 class="text-center" style="margin-bottom: 60px">注册</h2>
+                {% csrf_token %}
+                <!-- 用户名 -->
+                <div class="form-group {% if reg_obj.username.errors %}has-error{% endif %}">
+                    <label for="{{ reg_obj.username.id_for_label }}">{{ reg_obj.username.label }}</label>
+                    <span id="helpBlock2" class="help-block">{{ reg_obj.username.errors.0 }}</span>
+                    {{ reg_obj.username }}
+                </div>
+                <!-- 密码 -->
+                <div class="form-group {% if reg_obj.password.errors %}has-error{% endif %}">
+                    <label for="{{ reg_obj.password.id_for_label }}">{{ reg_obj.password.label }}</label>
+                    <span id="helpBlock2" class="help-block">{{ reg_obj.password.errors.0 }}</span>
+                    {{ reg_obj.password }}
+                </div>
+                <!-- 确认密码 -->
+                <div class="form-group {% if reg_obj.re_password.errors %}has-error{% endif %}">
+                    <label for="{{ reg_obj.re_password.id_for_label }}">{{ reg_obj.re_password.label }}</label>
+                    <span id="helpBlock2" class="help-block">{{ reg_obj.re_password.errors.0 }}</span>
+                    {{ reg_obj.re_password }}
+                </div>
+                <!-- 姓名 -->
+                <div class="form-group {% if reg_obj.name.errors %}has-error{% endif %}">
+                    <label for="{{ reg_obj.name.id_for_label }}">{{ reg_obj.name.label }}</label>
+                    <span id="helpBlock2" class="help-block">{{ reg_obj.name.errors.0 }}</span>
+                    {{ reg_obj.name }}
+                </div>
+                <!-- 部门 -->
+                <div class="form-group {% if reg_obj.department.errors %}has-error{% endif %}">
+                    <label for="{{ reg_obj.department.id_for_label }}">{{ reg_obj.department.label }}</label>
+                    <span id="helpBlock2" class="help-block">{{ reg_obj.department.errors.0 }}</span>
+                    {{ reg_obj.department }}
+                </div>
+                <!-- 提交 -->
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-success">Sign in</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /container -->
+
+
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="{% static 'reg/js/ie10-viewport-bug-workaround.js' %}"></script>
+<script src="{% static 'jquery/jquery-3.4.1.min.js' %}"></script>
+<script>
+    $('input').focus(function () {
+        $(this).prev().text('').parent().removeClass('has-error')
+    })
+</script>
+</body>
+</html>
