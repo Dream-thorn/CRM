@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager, User
 from django.utils.translation import ugettext_lazy as _
 from multiselectfield import MultiSelectField
-
+from django.utils.safestring import mark_safe
 
 # 咨询课程
 course_choices = (('LinuxL', 'Linux中高级'),
@@ -89,6 +89,28 @@ class Customer(models.Model):
     consultant = models.ForeignKey('UserProfile', verbose_name="销售", related_name='customers', blank=True, null=True, )
     class_list = models.ManyToManyField('ClassList', verbose_name="已报班级", )
 
+    def show_classes(self):
+        return ' | '.join([str(i) for i in self.class_list.all()])
+
+    def show_status(self):
+        """
+        ('signed', "已报名"),
+        ('unregistered', "未报名"),
+        ('studying', '学习中'),
+        ('paid_in_full', "学费已交齐")
+        """
+        color_dit = {
+            'signed': "green",
+            'unregistered': "red",
+            'studying': 'deepskyblue',
+            'paid_in_full': "yellow"
+        }
+        return mark_safe('<span style="color: {}">{}</span>'.format(color_dit[self.status], self.get_status_display()))
+
+    class Meta:
+        verbose_name = '客户列表'
+        verbose_name_plural = '客户列表'
+
 
 # 校区表
 class Campuses(models.Model):
@@ -97,6 +119,13 @@ class Campuses(models.Model):
     """
     name = models.CharField(verbose_name='校区', max_length=64)
     address = models.CharField(verbose_name='详细地址', max_length=512, blank=True, null=True)
+
+    class Meta:
+        verbose_name = '校区列表'
+        verbose_name_plural = '校区列表'
+
+    def __str__(self):
+        return self.name
 
 
 # 合同表
@@ -128,6 +157,11 @@ class ClassList(models.Model):
 
     class Meta:
         unique_together = ("course", "semester", 'campuses')
+        verbose_name = '班级列表'
+        verbose_name_plural = '班级列表'
+
+    def __str__(self):
+        return '{}{}({})'.format(self.get_course_display(), self.semester, self.campuses)
 
 
 # 跟进记录表

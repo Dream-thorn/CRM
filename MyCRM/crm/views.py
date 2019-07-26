@@ -36,9 +36,16 @@ def reg(request):
 
             # 方案二
             obj = reg_obj.save()    # 相当于使用create方法创建, 所以密码是明文
-            obj.set_password(obj.password)
+            obj.set_password(obj.password)      # 将密码重新设置为密文
             obj.save()
 
             return redirect('/login/')
 
     return render(request, 'reg.html', {'reg_obj': reg_obj})
+
+
+# 客户列表
+def customer_list(request):
+    # 全部客户信息
+    all_customer = models.Customer.objects.all()
+    return render(request, 'crm/customer_list.html', {'all_customer': all_customer})

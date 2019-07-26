@@ -115,9 +115,14 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_L10N = True
+# 设置了全局时间显示格式, 要改为False
+USE_L10N = False
 
 USE_TZ = True
+
+# 设置全局时间显示格式
+DATETIME_FORMAT = 'Y-m-d H:i:s'
+DATE_FORMAT = 'Y-m-d'
 
 
 # Static files (CSS, JavaScript, Images)

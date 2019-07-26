@@ -45,14 +45,18 @@ class RegForm(forms.ModelForm):
         }
     )
 
+    # 配置所有字段, 如果自己重写了某个字段, 则配置不生效
     class Meta:
         model = models.UserProfile
         # fields = '__all__'    # 所有字段
         fields = ['username', 'password', 're_password', 'name', 'department']
         # exclude = []    # 要排除的字段
+        # 给字段设置类型
         widgets = {
+            # 'password': forms.widgets.PasswordInput(attrs={'class': 'form-control'})  # 给这个字段单独设置样式
             'password': forms.widgets.PasswordInput()
         }
+        # 给字段设置label
         labels = {
             'department': '部门',
         }
@@ -60,6 +64,7 @@ class RegForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(RegForm, self).__init__(*args, **kwargs)
         for field in self.fields.values():
+            # 给每个字段的标签都加上样式
             field.widget.attrs.update({'class': 'form-control'})
 
     # 全局钩子
