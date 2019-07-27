@@ -23,4 +23,7 @@ urlpatterns = [
     url(r'^reg/', views.reg),
 
     url(r'^crm/', include('crm.urls')),
+
+
 ]
+

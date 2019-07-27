@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import auth
 from crm.forms import RegForm
 from crm import models
+from utils.pagination import Pagination
 
 
 # 登录
@@ -24,7 +25,7 @@ def login(request):
 # 注册
 def reg(request):
     reg_obj = RegForm()
-    
+
     if request.method == 'POST':
         reg_obj = RegForm(request.POST)
         if reg_obj.is_valid():
@@ -35,8 +36,8 @@ def reg(request):
             # models.UserProfile.objects.create_user(**reg_obj.cleaned_data)
 
             # 方案二
-            obj = reg_obj.save()    # 相当于使用create方法创建, 所以密码是明文
-            obj.set_password(obj.password)      # 将密码重新设置为密文
+            obj = reg_obj.save()  # 相当于使用create方法创建, 所以密码是明文
+            obj.set_password(obj.password)  # 将密码重新设置为密文
             obj.save()
 
             return redirect('/login/')
@@ -48,4 +49,8 @@ def reg(request):
 def customer_list(request):
     # 全部客户信息
     all_customer = models.Customer.objects.all()
-    return render(request, 'crm/customer_list.html', {'all_customer': all_customer})
+
+    page = Pagination(request, len(all_customer))
+
+    return render(request, 'crm/customer_list.html',
+                  {'all_customer': all_customer[page.data_start: page.data_end], 'all_tag': page.show_li})
