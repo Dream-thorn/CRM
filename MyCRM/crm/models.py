@@ -87,7 +87,7 @@ class Customer(models.Model):
     network_consultant = models.ForeignKey('UserProfile', blank=True, null=True, verbose_name='咨询师',
                                            related_name='network_consultant')
     consultant = models.ForeignKey('UserProfile', verbose_name="销售", related_name='customers', blank=True, null=True, )
-    class_list = models.ManyToManyField('ClassList', verbose_name="已报班级", )
+    class_list = models.ManyToManyField('ClassList', verbose_name="已报班级", blank=True)
 
     def show_classes(self):
         return ' | '.join([str(i) for i in self.class_list.all()])
@@ -103,7 +103,7 @@ class Customer(models.Model):
             'signed': "green",
             'unregistered': "red",
             'studying': 'deepskyblue',
-            'paid_in_full': "yellow"
+            'paid_in_full': "midnightblue"
         }
         return mark_safe('<span style="color: {}">{}</span>'.format(color_dit[self.status], self.get_status_display()))
 

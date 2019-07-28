@@ -76,3 +76,21 @@ class RegForm(forms.ModelForm):
 
         self.add_error('re_password', '两次密码不一致')
         raise ValidationError('两次密码不一致')
+
+
+# 添加客户form
+class CustomerForm(forms.ModelForm):
+
+    class Meta:
+        model = models.Customer
+        fields = '__all__'
+
+        widgets = {
+            'course': forms.widgets.SelectMultiple,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(CustomerForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            # 给每个字段的标签都加上样式
+            field.widget.attrs.update({'class': 'form-control'})

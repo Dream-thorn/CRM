@@ -11,14 +11,18 @@
 {% block content %}
     <div class="panel panel-default">
         <!-- Default panel contents -->
-        <div class="panel-heading">全部客户信息</div>
+        <div class="panel-heading">
+            全部客户信息
+            <div class="float-right">
+                <a href="{% url 'customer_add' %}" class="btn btn-danger btn-sm">添加客户</a>
+            </div>
+        </div>
         <div class="panel-body">
             <table class="table table-hover table-striped">
                 <thead>
                 <tr>
                     <th>#</th>
                     <th>QQ</th>
-                    <th>QQ昵称</th>
                     <th>姓名</th>
                     <th>性别</th>
                     <th>手机号</th>
@@ -36,8 +40,9 @@
                 {% for customer in all_customer %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ customer.qq }}</td>
-                        <td>{{ customer.qq_name|default:'暂无' }}</td>
+                        <td>
+                            <a href="/crm/customer/edit/{{ customer.id }}/">{{ customer.qq }}</a>
+                        </td>
                         <td>{{ customer.name|default:'暂无' }}</td>
                         <td>{{ customer.get_sex_display }}</td>
                         <td>{{ customer.phone|default:'暂无' }}</td>

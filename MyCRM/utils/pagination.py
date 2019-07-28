@@ -66,23 +66,23 @@ class Pagination:
         tag_list = []
 
         # 首页标签
-        first_tag = f'<li><a href="{self.url}?page=1">首页&nbsp;</a></li>'
+        first_tag = f'<li><a href="{self.url}?page=1">首页&nbsp;&nbsp;</a></li>'
         tag_list.append(first_tag)
 
         if self.page == 1:
-            tag = f'<li class="disabled"><a">&laquo;&nbsp;</a></li>'
+            tag = f'<li class="disabled"><a">&laquo;&nbsp;&nbsp;</a></li>'
         else:
-            tag = f'<li><a href="{self.url}?page={self.page - 1}">&laquo;&nbsp;</a></li>'
+            tag = f'<li><a href="{self.url}?page={self.page - 1}">&laquo;&nbsp;&nbsp;</a></li>'
         tag_list.append(tag)
 
         for num in range(self.start_page, self.end_page + 1):
-            tag = f'<li><a href="{self.url}?page={num}">{num}&nbsp;</a></li>'
+            tag = f'<li><a href="{self.url}?page={num}">{num}&nbsp;&nbsp;</a></li>'
             tag_list.append(tag)
 
         if self.page == self.total_page:
-            tag = f'<li class="disabled"><a">&raquo;&nbsp;</a></li>'
+            tag = f'<li class="disabled"><a">&raquo;&nbsp;&nbsp;</a></li>'
         else:
-            tag = f'<li><a href="{self.url}?page={self.page + 1}">&raquo;&nbsp;</a></li>'
+            tag = f'<li><a href="{self.url}?page={self.page + 1}">&raquo;&nbsp;&nbsp;</a></li>'
         tag_list.append(tag)
 
         # 尾页标签

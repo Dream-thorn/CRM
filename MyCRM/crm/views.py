@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import auth
-from crm.forms import RegForm
+from django.urls import reverse
+from crm.forms import RegForm, CustomerForm
 from crm import models
 from utils.pagination import Pagination
 
@@ -54,3 +55,49 @@ def customer_list(request):
 
     return render(request, 'crm/customer_list.html',
                   {'all_customer': all_customer[page.data_start: page.data_end], 'all_tag': page.show_li})
+
+
+"""
+# 添加客户
+def customer_add(request):
+    form_obj = CustomerForm()
+
+    if request.method == 'POST':
+        form_obj = CustomerForm(request.POST)
+        if form_obj.is_valid():
+            form_obj.save()
+
+            return redirect(reverse('customer'))
+
+    return render(request, 'crm/customer_add.html', {'form_obj': form_obj})
+
+
+# 编辑客户
+def customer_edit(request, edit_id):
+    edit_obj = models.Customer.objects.filter(id=edit_id).first()
+    form_obj = CustomerForm(instance=edit_obj)
+
+    if request.method == 'POST':
+        form_obj = CustomerForm(request.POST, instance=edit_obj)
+        if form_obj.is_valid():
+            form_obj.save()
+
+            return redirect(reverse('customer'))
+
+    return render(request, 'crm/customer_edit.html', {'form_obj': form_obj})
+"""
+
+
+# 添加编辑客户功能二合一
+def customer_add_or_edit(request, edit_id=None):
+    edit_obj = models.Customer.objects.filter(id=edit_id).first()
+    form_obj = CustomerForm(instance=edit_obj)
+
+    if request.method == 'POST':
+        form_obj = CustomerForm(request.POST, instance=edit_obj)
+        if form_obj.is_valid():
+            form_obj.save()
+
+            return redirect(reverse('customer'))
+
+    return render(request, 'crm/customer_add_or_edit.html', {'form_obj': form_obj, 'edit_id': edit_id})
