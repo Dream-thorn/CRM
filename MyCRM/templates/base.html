@@ -40,11 +40,11 @@
 
                     <div class="dropdown-item noti-title">
                         <h5 class="m-0">
-<span class="float-right">
-<a href="javascript: void(0);" class="text-dark">
-<small>Clear All</small>
-</a>
-</span>Notification
+                            <span class="float-right">
+                                <a href="javascript: void(0);" class="text-dark">
+                                    <small>Clear All</small>
+                                </a>
+                            </span>Notification
                         </h5>
                     </div>
                     <div class="slimscroll" style="max-height: 230px;">
@@ -93,7 +93,12 @@
                 <a class="nav-link dropdown-toggle nav-user arrow-none mr-0" data-toggle="dropdown" id="topbar-userdrop"
                    href="#" role="button" aria-haspopup="true" aria-expanded="false">
                     <span>
-                        <span class="account-user-name">个人中心</span>
+                        <span class="account-user-name">
+                    <i class="dripicons-user"></i>
+                            {% block username %}
+                                个人中心
+                            {% endblock %}
+                        </span>
                         <span class="account-position">点击展开</span>
                     </span>
                 </a>
@@ -114,7 +119,7 @@
                         <span>设置</span>
                     </a>
 
-                    <a href="javascript:void(0);" class="dropdown-item notify-item">
+                    <a href="{% url 'logout' %}" class="dropdown-item notify-item">
                         <i class="mdi mdi-logout mr-1"></i>
                         <span>注销</span>
                     </a>
@@ -128,17 +133,6 @@
                 <span></span>
             </div>
         </a>
-        <div class="app-search">
-            <form>
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="搜索...">
-                    <span class="mdi mdi-magnify"></span>
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="submit">搜索</button>
-                    </div>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
 
@@ -154,24 +148,18 @@
             </div>
 
             <ul class="metismenu side-nav">
-                <li class="side-nav-title side-nav-item">Navigation</li>
+                <li class="side-nav-title side-nav-item">客户信息</li>
                 <li class="side-nav-item">
-                    <a href="javascript: void(0);" class="side-nav-link">
-                        <i class="dripicons-meter"></i>
-                        <span class="badge badge-success float-right">3</span>
-                        <span> Dashboards </span>
+                    <a href="{% url 'customer' %}" class="side-nav-link">
+                        <i class="dripicons-user-group"></i>
+                        <span> 客户列表 </span>
                     </a>
-                    <ul class="side-nav-second-level" aria-expanded="false">
-                        <li>
-                            <a href="#">Ecommerce</a>
-                        </li>
-                        <li>
-                            <a href="#">CRM</a>
-                        </li>
-                        <li>
-                            <a href="#">Projects</a>
-                        </li>
-                    </ul>
+                </li>
+                <li class="side-nav-item">
+                    <a href="{% url 'my_customer' %}" class="side-nav-link">
+                        <i class="dripicons-user-group"></i>
+                        <span> 我的客户 </span>
+                    </a>
                 </li>
                 <li class="side-nav-item">
                     <a href="javascript: void(0);" class="side-nav-link">

@@ -8,58 +8,85 @@
     </style>
 {% endblock %}
 
+{% block username %}
+    {{ user.name }}
+{% endblock %}
+
 {% block content %}
     <div class="panel panel-default">
-        <!-- Default panel contents -->
-        <div class="panel-heading">
-            全部客户信息
-            <div class="float-right">
-                <a href="{% url 'customer_add' %}" class="btn btn-danger btn-sm">添加客户</a>
-            </div>
-        </div>
+        <div class="panel-heading" style="font-size: 20px;"><b>全部客户信息</b></div>
+        <hr>
         <div class="panel-body">
-            <table class="table table-hover table-striped">
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>QQ</th>
-                    <th>姓名</th>
-                    <th>性别</th>
-                    <th>手机号</th>
-                    <th>客户来源</th>
-                    <th>咨询课程</th>
-                    <th>班级类型</th>
-                    <th>状态</th>
-                    <th>咨询日期</th>
-                    <th>最后跟进日期</th>
-                    <th>销售</th>
-                    <th>已报班级</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for customer in all_customer %}
+            <div>
+                <div class="float-right">
+                    <form action="">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="query" placeholder="搜索...">
+                            <span class="mdi mdi-magnify"></span>
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">搜索客户</button>
+                            </div>
+                            <a href="{% url 'customer_add' %}" class="btn btn-danger btn-sm" style="margin-left: 24px">添加客户</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <form action="" method="post">
+                {% csrf_token %}
+                <div class="btn-group invisible" id="se">
+                    <select class="form-control" name="action">
+                        <option selected>---选择操作---</option>
+                        <optgroup label="">
+                            <option value="public">设为公有</option>
+                            <option value="private">设置私有</option>
+                        </optgroup>
+                        <optgroup label="">
+                            <option value="delete">删除</option>
+                        </optgroup>
+                    </select>
+                    <button class="btn btn-success" type="submit">ok</button>
+                </div>
+                <table class="table table-hover table-striped">
+                    <thead>
                     <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            <a href="/crm/customer/edit/{{ customer.id }}/">{{ customer.qq }}</a>
-                        </td>
-                        <td>{{ customer.name|default:'暂无' }}</td>
-                        <td>{{ customer.get_sex_display }}</td>
-                        <td>{{ customer.phone|default:'暂无' }}</td>
-                        <td>{{ customer.get_source_display }}</td>
-                        <td>{{ customer.course }}</td>
-                        <td>{{ customer.get_class_type_display }}</td>
-                        <td>
-                            {{ customer.show_status }}
-                        </td>
-                        <td>{{ customer.date }}</td>
-                        <td>{{ customer.last_consult_date }}</td>
-                        <td>{{ customer.consultant|default:'暂无' }}</td>
-                        <td>{{ customer.show_classes }}</td>
+                        <th>选择</th>
+                        <th>#</th>
+                        <th>QQ</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>咨询课程</th>
+                        <th>班级类型</th>
+                        <th>状态</th>
+                        <th>咨询日期</th>
+                        <th>最后跟进日期</th>
+                        <th>销售</th>
+                        <th>已报班级</th>
                     </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {% for customer in all_customer %}
+                        <tr>
+                            <td><input type="checkbox" value="{{ customer.id }}" name="id"></td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <a href="/crm/customer/edit/{{ customer.id }}/">{{ customer.qq }}</a>
+                            </td>
+                            <td>{{ customer.name|default:'暂无' }}</td>
+                            <td>{{ customer.get_sex_display }}</td>
+                            <td>{{ customer.course }}</td>
+                            <td>{{ customer.get_class_type_display }}</td>
+                            <td>
+                                {{ customer.show_status }}
+                            </td>
+                            <td>{{ customer.date }}</td>
+                            <td>{{ customer.last_consult_date }}</td>
+                            <td>{{ customer.consultant|default:'暂无' }}</td>
+                            <td>{{ customer.show_classes }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </form>
         </div>
 
         <!-- 页码 -->
@@ -71,4 +98,12 @@
 
     </div>
 
+{% endblock %}
+
+{% block js %}
+    <script>
+        $('input:checkbox').click(function () {
+            $('#se').removeClass('invisible')
+        })
+    </script>
 {% endblock %}

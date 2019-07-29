@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block username %}
+    {{ user.name }}
+{% endblock %}
 
 {% block content %}
     <div class="panel panel-info">

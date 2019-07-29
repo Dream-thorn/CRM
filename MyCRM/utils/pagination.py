@@ -1,24 +1,36 @@
 from django.utils.safestring import mark_safe
+from django.http import QueryDict
+
 
 
 class Pagination:
 
-    def __init__(self, request, all_data_len, each_page_data=10, max_page=11):
+    def __init__(self, request, all_data_len, query_params=QueryDict(), each_page_data=10, max_page=11):
         """
         分页器
         :param request: request
         :param all_data_len: 全部数据的长度
+        :param query_params: 查询条件
         :param each_page_data: 每页要显示的数据数量
         :param max_page: 当前页面最大显示多少页码
         """
 
+        # 每页要显示的数据数量
         self.each_page_data = each_page_data
+        # 当前页面的url
         self.url = request.path_info
+
+        # 查询条件
+        self.query_params = query_params
+        # 将这个QueryDict字典设置为可修改
+        self.query_params._mutable = True
+
 
         """每页数据相关"""
         # 计算总页数
         self.total_page, more = divmod(all_data_len, self.each_page_data)
-        if more:
+        # 如果数据不能整除或没有数据
+        if more or (not self.total_page):
             self.total_page += 1
 
         # 获取用户要访问的页码数
@@ -65,28 +77,37 @@ class Pagination:
         # 全部要显示的标签
         tag_list = []
 
+
         # 首页标签
-        first_tag = f'<li><a href="{self.url}?page=1">首页&nbsp;&nbsp;</a></li>'
+        self.query_params['page'] = 1
+        first_tag = '<li><a href="{}?{}">首页&nbsp;&nbsp;</a></li>'.format(self.url, self.query_params.urlencode())
         tag_list.append(first_tag)
 
+        # 上一页
         if self.page == 1:
             tag = f'<li class="disabled"><a">&laquo;&nbsp;&nbsp;</a></li>'
         else:
-            tag = f'<li><a href="{self.url}?page={self.page - 1}">&laquo;&nbsp;&nbsp;</a></li>'
+            self.query_params['page'] = self.page - 1
+            tag = '<li><a href="{}?{}">&laquo;&nbsp;&nbsp;</a></li>'.format(self.url, self.query_params.urlencode())
         tag_list.append(tag)
 
+        # 中间页
         for num in range(self.start_page, self.end_page + 1):
-            tag = f'<li><a href="{self.url}?page={num}">{num}&nbsp;&nbsp;</a></li>'
+            self.query_params['page'] = num
+            tag = '<li><a href="{}?{}">{}&nbsp;&nbsp;</a></li>'.format(self.url, self.query_params.urlencode(), num)
             tag_list.append(tag)
 
+        # 下一页
+        self.query_params['page'] = self.page + 1
         if self.page == self.total_page:
             tag = f'<li class="disabled"><a">&raquo;&nbsp;&nbsp;</a></li>'
         else:
-            tag = f'<li><a href="{self.url}?page={self.page + 1}">&raquo;&nbsp;&nbsp;</a></li>'
+            tag = '<li><a href="{}?{}">&raquo;&nbsp;&nbsp;</a></li>'.format(self.url, self.query_params.urlencode())
         tag_list.append(tag)
 
         # 尾页标签
-        last_tag = f'<li><a href="{self.url}?page={self.total_page}">尾页</a></li>'
+        self.query_params['page'] = self.total_page
+        last_tag = '<li><a href="{}?{}">尾页</a></li>'.format(self.url, self.query_params.urlencode())
         tag_list.append(last_tag)
 
         # 让这些标签能在前端直接使用

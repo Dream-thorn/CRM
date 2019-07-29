@@ -19,7 +19,11 @@ from crm import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    # 登录
     url(r'^login/', views.login),
+    # 注销
+    url(r'^logout/', views.logout, name='logout'),
+    # 注册
     url(r'^reg/', views.reg),
 
     url(r'^crm/', include('crm.urls')),

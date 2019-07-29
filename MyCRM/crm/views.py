@@ -1,9 +1,11 @@
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.contrib import auth
 from django.urls import reverse
 from crm.forms import RegForm, CustomerForm
 from crm import models
 from utils.pagination import Pagination
+from django.views import View
 
 
 # 登录
@@ -15,12 +17,20 @@ def login(request):
         password = request.POST.get('password')
         # 验证用户名和密码
         obj = auth.authenticate(request, username=username, password=password)
-        print(obj)
+        # print(obj)
         if obj:
-            return redirect('/index/')
+            auth.login(request, obj)
+            return redirect(reverse('my_customer'))
         error_msg = '用户名或密码错误'
 
     return render(request, 'login.html', {'error_msg': error_msg})
+
+
+# 注销
+def logout(request):
+    auth.logout(request)
+
+    return redirect('/login/')
 
 
 # 注册
@@ -46,15 +56,102 @@ def reg(request):
     return render(request, 'reg.html', {'reg_obj': reg_obj})
 
 
+"""
 # 客户列表
 def customer_list(request):
-    # 全部客户信息
-    all_customer = models.Customer.objects.all()
+    # 如果要访问公有客户
+    if request.path_info == reverse('customer'):
+        # 公有客户信息
+        all_customer = models.Customer.objects.filter(consultant__isnull=True)
+    else:
+        # 私有客户信息
+        all_customer = models.Customer.objects.filter(consultant=request.user)
 
+    # 分页功能
     page = Pagination(request, len(all_customer))
 
     return render(request, 'crm/customer_list.html',
-                  {'all_customer': all_customer[page.data_start: page.data_end], 'all_tag': page.show_li})
+                  {'all_customer': all_customer[page.data_start: page.data_end],
+                   'all_tag': page.show_li,
+                   'user': request.user})
+"""
+
+
+# 客户列表
+class CustomerList(View):
+
+    def get(self, request):
+        # 要查询的字段
+        query_list = ['qq', 'name', 'date']
+        q = self.get_search_content(query_list)
+        # 如果要访问公有客户
+        if request.path_info == reverse('customer'):
+            # 公有客户信息
+            all_customer = models.Customer.objects.filter(q, consultant__isnull=True)
+        else:
+            # 私有客户信息
+            all_customer = models.Customer.objects.filter(q, consultant=request.user)
+
+        # print(request.GET)      # <QueryDict: {'query': ['user'], 'page': ['2']}>
+        # print(request.GET.urlencode())      # query=user&page=2
+
+        query_params = request.GET.copy()   # QueryDict的深拷贝方法
+
+
+        # 分页功能
+        page = Pagination(request, len(all_customer), query_params, each_page_data=2)
+
+        return render(request, 'crm/customer_list.html',
+                      {'all_customer': all_customer[page.data_start: page.data_end],
+                       'all_tag': page.show_li,
+                       'user': request.user})
+
+    def post(self, request):
+        # 获取用户选择的操作
+        action = request.POST.get('action')
+        # 用反射查看这个操作是否可执行
+        if getattr(self, action):
+            # 执行这个操作
+            getattr(self, action)()
+
+        return self.get(request)
+
+    # 设为公有
+    def public(self):
+        # 获取客户钩选的用户的id
+        ids = self.request.POST.getlist('id')
+
+        # 多对一设为公有
+        # models.Customer.objects.filter(id__in=ids).update(consultant=None)
+
+        # 一对多设为公有
+        self.request.user.customers.remove(*models.Customer.objects.filter(id__in=ids))
+
+    # 设为私有
+    def private(self):
+        ids = self.request.POST.getlist('id')
+
+        # 多对一设为私有
+        # models.Customer.objects.filter(id__in=ids).update(consultant=self.request.user)
+
+        # 一对多设为私有
+        self.request.user.customers.add(*models.Customer.objects.filter(id__in=ids))
+
+    # 删除用户
+    def delete(self):
+        ids = self.request.POST.getlist('id')
+        models.Customer.objects.filter(id__in=ids).delete()
+
+    # 模糊查询
+    def get_search_content(self, query_list):
+        query = self.request.GET.get('query', '')
+        q = Q()
+        q.connector = 'OR'
+        for i in query_list:
+            q.children.append(Q((f'{i}__contains', query)))
+
+        # q = Q(Q((qq__contains, query)) | Q((name__contains, query)) | ...)
+        return q
 
 
 """
@@ -100,4 +197,7 @@ def customer_add_or_edit(request, edit_id=None):
 
             return redirect(reverse('customer'))
 
-    return render(request, 'crm/customer_add_or_edit.html', {'form_obj': form_obj, 'edit_id': edit_id})
+    return render(request, 'crm/customer_add_or_edit.html',
+                  {'form_obj': form_obj,
+                   'edit_id': edit_id,
+                   'user': request.user})
