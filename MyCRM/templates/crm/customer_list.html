@@ -103,7 +103,12 @@
 {% block js %}
     <script>
         $('input:checkbox').click(function () {
-            $('#se').removeClass('invisible')
+            {#判断是否至少选中一个复选框#}
+            if ($("input:checkbox[name='id']:checked").length > 0) {
+                $('#se').removeClass('invisible')
+            } else {
+                $('#se').addClass('invisible')
+            }
         })
     </script>
 {% endblock %}
