@@ -26,7 +26,8 @@
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="submit">搜索客户</button>
                             </div>
-                            <a href="{% url 'customer_add' %}" class="btn btn-danger btn-sm" style="margin-left: 24px">添加客户</a>
+                            <a href="{% url 'customer_add' %}?{{ next }}" class="btn btn-danger btn-sm"
+                               style="margin-left: 24px">添加客户</a>
                         </div>
                     </form>
                 </div>
@@ -58,9 +59,13 @@
                         <th>班级类型</th>
                         <th>状态</th>
                         <th>咨询日期</th>
-                        <th>最后跟进日期</th>
+                        <th>最后咨询日期</th>
+                        <th>咨询记录</th>
                         <th>销售</th>
-                        <th>已报班级</th>
+                        <th>意向班级</th>
+                        {% if request.path_info == "/crm/my_customer_list/" %}
+                            <th>报名记录</th>
+                        {% endif %}
                     </tr>
                     </thead>
                     <tbody>
@@ -69,7 +74,7 @@
                             <td><input type="checkbox" value="{{ customer.id }}" name="id"></td>
                             <td>{{ forloop.counter }}</td>
                             <td>
-                                <a href="/crm/customer/edit/{{ customer.id }}/">{{ customer.qq }}</a>
+                                <a href="/crm/customer/edit/{{ customer.id }}/?{{ next }}">{{ customer.qq }}</a>
                             </td>
                             <td>{{ customer.name|default:'暂无' }}</td>
                             <td>{{ customer.get_sex_display }}</td>
@@ -80,8 +85,19 @@
                             </td>
                             <td>{{ customer.date }}</td>
                             <td>{{ customer.last_consult_date }}</td>
+                            <td><a href="{% url 'consult' customer.id %}">查看</a></td>
                             <td>{{ customer.consultant|default:'暂无' }}</td>
                             <td>{{ customer.show_classes }}</td>
+                            {% if request.path_info == "/crm/my_customer_list/" %}
+                                <th>
+                                    {% if customer.enroll_link == '0' %}
+                                        <a href='/crm/enrollment/add/{{ customer.id }}/?{{ next }}'>报名</a>
+                                    {% else %}
+                                        <a href='{% url 'enrollment' customer.id %}'>查看</a>
+                                        <a href='/crm/enrollment/add/{{ customer.id }}/?{{ next }}'>报名</a>
+                                    {% endif %}
+                                </th>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                     </tbody>

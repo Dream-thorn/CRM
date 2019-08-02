@@ -1,8 +1,9 @@
 from django.db.models import Q
+from django.http import QueryDict
 from django.shortcuts import render, redirect
 from django.contrib import auth
 from django.urls import reverse
-from crm.forms import RegForm, CustomerForm
+from crm.forms import RegForm, CustomerForm, ConsultRecordForm, EnrollmentForm
 from crm import models
 from utils.pagination import Pagination
 from django.views import View
@@ -95,16 +96,19 @@ class CustomerList(View):
         # print(request.GET)      # <QueryDict: {'query': ['user'], 'page': ['2']}>
         # print(request.GET.urlencode())      # query=user&page=2
 
-        query_params = request.GET.copy()   # QueryDict的深拷贝方法
-
+        query_params = request.GET.copy()  # QueryDict的深拷贝方法
 
         # 分页功能
-        page = Pagination(request, len(all_customer), query_params, each_page_data=2)
+        page = Pagination(request, len(all_customer), query_params, each_page_data=10)
+
+        # 下一个要跳转的url地址
+        next = self.get_next().urlencode()  # next=%2Fcrm%2Fcustomer_list%2F%3Fquery%3Duser%26page%3D2
 
         return render(request, 'crm/customer_list.html',
                       {'all_customer': all_customer[page.data_start: page.data_end],
                        'all_tag': page.show_li,
-                       'user': request.user})
+                       'user': request.user,
+                       'next': next})
 
     def post(self, request):
         # 获取用户选择的操作
@@ -153,6 +157,20 @@ class CustomerList(View):
         # q = Q(Q((qq__contains, query)) | Q((name__contains, query)) | ...)
         return q
 
+    # 获取添加和编辑按钮当前页面的url
+    def get_next(self):
+        # 获取当前页面的全路径, 包含get参数, 如: /crm/customer_list/?query=user&page=2
+        next = self.request.get_full_path()
+
+        # 创建QueryDict字典
+        qDict = QueryDict()
+        # 将这个字典设为可修改
+        qDict._mutable = True
+        qDict['next'] = next
+
+        return qDict
+
+
 
 """
 # 添加客户
@@ -195,9 +213,128 @@ def customer_add_or_edit(request, edit_id=None):
         if form_obj.is_valid():
             form_obj.save()
 
-            return redirect(reverse('customer'))
+        # 获取要跳转的地址
+        next = request.GET.get('next')
+        if next:
+            # 跳转到这个地址
+            return redirect(next)
+
+        return redirect(reverse('customer'))
 
     return render(request, 'crm/customer_add_or_edit.html',
                   {'form_obj': form_obj,
                    'edit_id': edit_id,
                    'user': request.user})
+
+
+# 咨询记录列表
+class ConsultRecordList(View):
+
+    def get(self, request, customer_id):
+        # customer_id为0则查询当前用户的全部咨询记录
+        if customer_id == '0':
+            all_consult_record = models.ConsultRecord.objects.filter(consultant=request.user, delete_status=False)
+        # 否则查询当前用户的客户id为customer_id的咨询记录
+        else:
+            all_consult_record = models.ConsultRecord.objects.filter(customer_id=customer_id, consultant=request.user,
+                                                                     delete_status=False)
+
+        query_params = request.GET.copy()
+        # 分页功能
+        page = Pagination(request, len(all_consult_record), query_params, each_page_data=10)
+
+        return render(request, 'crm/consult_record_list.html',
+                      {'all_consult_record': all_consult_record,
+                       'all_tag': page.show_li})
+
+    def post(self, request, customer_id):
+        # 获取用户选择的操作
+        action = request.POST.get('action')
+        # 用反射查看这个操作是否可执行
+        if getattr(self, action):
+            # 执行这个操作
+            getattr(self, action)()
+
+        return self.get(request, customer_id)
+
+    # 删除用户
+    def delete(self):
+        ids = self.request.POST.getlist('id')
+        models.ConsultRecord.objects.filter(id__in=ids).delete()
+
+
+# 添加修改咨询记录二合一
+def consult_record_add_or_edit(request, edit_id=None):
+    cr_obj = models.ConsultRecord.objects.filter(id=edit_id).first() or models.ConsultRecord(consultant=request.user)
+    form_obj = ConsultRecordForm(instance=cr_obj)
+
+    if request.method == 'POST':
+        form_obj = ConsultRecordForm(request.POST, instance=cr_obj)
+
+        if form_obj.is_valid():
+            form_obj.save()
+
+            return redirect(reverse('consult', args=('0',)))
+
+    return render(request, 'crm/consult_record_add_or_edit.html', {'form_obj': form_obj, 'edit_id': edit_id})
+
+
+# 报名记录列表
+class EnrollmentList(View):
+
+    def get(self, request, customer_id):
+        # 获取记录
+        if customer_id == '0':
+            all_record = models.Enrollment.objects.filter(customer__consultant=request.user, delete_status=False)
+        else:
+            all_record = models.Enrollment.objects.filter(customer_id=customer_id, customer__consultant=request.user,
+                                                          delete_status=False)
+
+        query_params = request.GET.copy()
+        # 分页功能
+        page = Pagination(request, len(all_record), query_params, each_page_data=10)
+
+        return render(request, 'crm/enrollment_list.html',
+                      {'all_record': all_record,
+                       'all_tag': page.show_li})
+
+    def post(self, request, customer_id):
+        # 获取用户选择的操作
+        action = request.POST.get('action')
+        # 用反射查看这个操作是否可执行
+        if getattr(self, action):
+            # 执行这个操作
+            getattr(self, action)()
+
+        return self.get(request, customer_id)
+
+    # 删除用户
+    def delete(self):
+        ids = self.request.POST.getlist('id')
+        models.Enrollment.objects.filter(id__in=ids).delete()
+
+
+
+# 添加或编辑报名记录
+def enrollment_add_or_edit(request, customer_id=None, edit_id=None):
+    enrollment_obj = models.Enrollment.objects.filter(id=edit_id).first() or models.Enrollment(customer_id=customer_id)
+    form_obj = EnrollmentForm(instance=enrollment_obj)
+
+    if request.method == 'POST':
+        form_obj = EnrollmentForm(request.POST, instance=enrollment_obj)
+        # 如果客户同意协议内容, 则进行校验, 否则取消提交
+        if request.POST.get('contract_agreed') == 'on':
+            if form_obj.is_valid():
+                # 保存报名记录
+                obj = form_obj.save()
+                # 将这个客户的状态改为已报名
+                obj.customer.status = 'signed'
+                obj.customer.save()
+
+                next = request.GET.get('next')
+                if next:
+                    return redirect(next)
+                else:
+                    return redirect(reverse('enrollment', args=('0',)))
+
+    return render(request, 'crm/enrollment_add_or_edit.html', {'form_obj': form_obj, 'next': request.GET.get('next')})

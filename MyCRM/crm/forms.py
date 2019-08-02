@@ -4,8 +4,16 @@ from django.core.exceptions import ValidationError
 from crm import models
 
 
+class BaseForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            # 给每个字段的标签都加上样式
+            field.widget.attrs.update({'class': 'form-control'})
+
+
 # 注册form
-class RegForm(forms.ModelForm):
+class RegForm(BaseForm):
     username = forms.CharField(
         label='用户名',
         widget=forms.widgets.EmailInput(),
@@ -61,12 +69,6 @@ class RegForm(forms.ModelForm):
             'department': '部门',
         }
 
-    def __init__(self, *args, **kwargs):
-        super(RegForm, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
-            # 给每个字段的标签都加上样式
-            field.widget.attrs.update({'class': 'form-control'})
-
     # 全局钩子
     def clean(self):
         pwd = self.cleaned_data.get('password')
@@ -79,8 +81,7 @@ class RegForm(forms.ModelForm):
 
 
 # 添加客户form
-class CustomerForm(forms.ModelForm):
-
+class CustomerForm(BaseForm):
     class Meta:
         model = models.Customer
         fields = '__all__'
@@ -89,8 +90,37 @@ class CustomerForm(forms.ModelForm):
             'course': forms.widgets.SelectMultiple,
         }
 
+
+# 添加咨询记录form
+class ConsultRecordForm(BaseForm):
+    class Meta:
+        model = models.ConsultRecord
+        exclude = ['delete_status']
+
     def __init__(self, *args, **kwargs):
-        super(CustomerForm, self).__init__(*args, **kwargs)
-        for field in self.fields.values():
-            # 给每个字段的标签都加上样式
-            field.widget.attrs.update({'class': 'form-control'})
+        super().__init__(*args, **kwargs)
+
+        # 获取当前用户的私有客户
+        customer_choice = [(i.id, i) for i in self.instance.consultant.customers.all()]
+        customer_choice.insert(0, ('', '---------'))
+
+        # 所咨询客户只能是当前用户的私有客户
+        self.fields['customer'].widget.choices = customer_choice
+        # 限制咨询记录人为当前用户
+        self.fields['consultant'].widget.choices =  [(self.instance.consultant.id, self.instance.consultant),]
+
+
+# 报名记录form
+class EnrollmentForm(BaseForm):
+    class Meta:
+        model = models.Enrollment
+        exclude = ['contract_approved', 'delete_status']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # 限制客户只能是当前要报名的客户
+        self.fields['customer'].widget.choices = [(self.instance.customer_id, self.instance.customer)]
+        # 限制班级只能是意向班级
+        self.fields['enrolment_class'].widget.choices = [(i.id, i) for i in self.instance.customer.class_list.all()]
+

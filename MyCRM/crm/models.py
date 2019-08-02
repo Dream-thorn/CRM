@@ -87,11 +87,13 @@ class Customer(models.Model):
     network_consultant = models.ForeignKey('UserProfile', blank=True, null=True, verbose_name='咨询师',
                                            related_name='network_consultant')
     consultant = models.ForeignKey('UserProfile', verbose_name="销售", related_name='customers', blank=True, null=True, )
-    class_list = models.ManyToManyField('ClassList', verbose_name="已报班级", blank=True)
+    class_list = models.ManyToManyField('ClassList', verbose_name="意向班级", blank=True)
 
+    # 根据已选择的意向班级格式化显示
     def show_classes(self):
         return ' | '.join([str(i) for i in self.class_list.all()])
 
+    # 根据客户的状态显示不同的颜色
     def show_status(self):
         """
         ('signed', "已报名"),
@@ -107,9 +109,21 @@ class Customer(models.Model):
         }
         return mark_safe('<span style="color: {}">{}</span>'.format(color_dit[self.status], self.get_status_display()))
 
+    # 根据报名状态显示不同的报名记录标签
+    def enroll_link(self):
+        if self.status == 'unregistered':
+            return '0'
+        else:
+            return '1'
+
+
     class Meta:
         verbose_name = '客户列表'
         verbose_name_plural = '客户列表'
+
+    def __str__(self):
+        return '{}<{}>'.format(self.name, self.qq)
+
 
 
 # 校区表
@@ -164,16 +178,16 @@ class ClassList(models.Model):
         return '{}{}({})'.format(self.get_course_display(), self.semester, self.campuses)
 
 
-# 跟进记录表
+# 咨询(跟进)记录表
 class ConsultRecord(models.Model):
     """
-    跟进记录表
+    咨询记录表
     """
     customer = models.ForeignKey('Customer', verbose_name="所咨询客户")
-    note = models.TextField(verbose_name="跟进内容...")
-    status = models.CharField("跟进状态", max_length=8, choices=seek_status_choices, help_text="选择客户此时的状态")
-    consultant = models.ForeignKey("UserProfile", verbose_name="跟进人", related_name='records')
-    date = models.DateTimeField("跟进日期", auto_now_add=True)
+    note = models.TextField(verbose_name="咨询内容...")
+    status = models.CharField("咨询状态", max_length=8, choices=seek_status_choices, help_text="选择客户此时的状态")
+    consultant = models.ForeignKey("UserProfile", verbose_name="咨询记录人", related_name='records')
+    date = models.DateTimeField("咨询日期", auto_now_add=True)
     delete_status = models.BooleanField(verbose_name='删除状态', default=False)
 
 
@@ -182,7 +196,6 @@ class Enrollment(models.Model):
     """
     报名表
     """
-
     why_us = models.TextField("为什么报名", max_length=1024, default=None, blank=True, null=True)
     your_expectation = models.TextField("学完想达到的具体期望", max_length=1024, blank=True, null=True)
     contract_agreed = models.BooleanField("我已认真阅读完培训协议并同意全部协议内容", default=False)
@@ -191,7 +204,7 @@ class Enrollment(models.Model):
     memo = models.TextField('备注', blank=True, null=True)
     delete_status = models.BooleanField(verbose_name='删除状态', default=False)
     customer = models.ForeignKey('Customer', verbose_name='客户名称')
-    school = models.ForeignKey('Campuses')
+    school = models.ForeignKey('Campuses', verbose_name='校区')
     enrolment_class = models.ForeignKey("ClassList", verbose_name="所报班级")
 
     class Meta:
