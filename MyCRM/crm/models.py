@@ -111,10 +111,11 @@ class Customer(models.Model):
 
     # 根据报名状态显示不同的报名记录标签
     def enroll_link(self):
-        if self.status == 'unregistered':
-            return '0'
-        else:
+        # 如果有报名记录
+        if self.enrollment_set.exists():
             return '1'
+        else:
+            return '0'
 
 
     class Meta:
@@ -176,6 +177,9 @@ class ClassList(models.Model):
 
     def __str__(self):
         return '{}{}({})'.format(self.get_course_display(), self.semester, self.campuses)
+
+    def show_teacher(self):
+        return ' | '.join([str(i) for i in self.teachers.all()])
 
 
 # 咨询(跟进)记录表
@@ -246,7 +250,7 @@ class CourseRecord(models.Model):
     date = models.DateField(auto_now_add=True, verbose_name="上课日期")
     course_title = models.CharField('本节课程标题', max_length=64, blank=True, null=True)
     course_memo = models.TextField('本节课程内容', max_length=300, blank=True, null=True)
-    has_homework = models.BooleanField(default=True, verbose_name="本节有作业")
+    has_homework = models.BooleanField(default=True, verbose_name="是否有作业")
     homework_title = models.CharField('本节作业标题', max_length=64, blank=True, null=True)
     homework_memo = models.TextField('作业描述', max_length=500, blank=True, null=True)
     scoring_point = models.TextField('得分点', max_length=300, blank=True, null=True)

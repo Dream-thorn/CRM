@@ -2,7 +2,6 @@ from django.utils.safestring import mark_safe
 from django.http import QueryDict
 
 
-
 class Pagination:
 
     def __init__(self, request, all_data_len, query_params=QueryDict(), each_page_data=10, max_page=11):
@@ -24,7 +23,6 @@ class Pagination:
         self.query_params = query_params
         # 将这个QueryDict字典设置为可修改
         self.query_params._mutable = True
-
 
         """每页数据相关"""
         # 计算总页数
@@ -76,7 +74,6 @@ class Pagination:
     def show_li(self):
         # 全部要显示的标签
         tag_list = []
-
 
         # 首页标签
         self.query_params['page'] = 1

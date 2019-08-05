@@ -148,20 +148,16 @@
             </div>
 
             <ul class="metismenu side-nav">
-                <li class="side-nav-title side-nav-item">客户信息</li>
-                <li class="side-nav-item">
-                    <a href="{% url 'customer' %}" class="side-nav-link">
-                        <i class="dripicons-user-group"></i>
-                        <span> 客户列表 </span>
-                    </a>
-                </li>
                 <li class="side-nav-item">
                     <a href="javascript: void(0);" class="side-nav-link">
                         <i class="dripicons-user-group"></i>
-                        <span> 我的客户 </span>
+                        <span> 销售 </span>
                         <span class="menu-arrow"></span>
                     </a>
                     <ul class="side-nav-second-level" aria-expanded="false">
+                        <li>
+                            <a href="{% url 'customer' %}">客户列表</a>
+                        </li>
                         <li>
                             <a href="{% url 'my_customer' %}">我的客户</a>
                         </li>
@@ -170,6 +166,24 @@
                         </li>
                         <li>
                             <a href="{% url 'enrollment' '0' %}">报名记录</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="side-nav-item">
+                    <a href="javascript: void(0);" class="side-nav-link">
+                        <i class="dripicons-user-group"></i>
+                        <span> 教师 </span>
+                        <span class="menu-arrow"></span>
+                    </a>
+                    <ul class="side-nav-second-level" aria-expanded="false">
+                        <li>
+                            <a href="{% url 'class' %}">班级列表</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'my_class' %}">我的班级</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'course' '0' %}">课程列表</a>
                         </li>
                     </ul>
                 </li>

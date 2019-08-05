@@ -15,16 +15,16 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from crm import views
+from crm.views import sales
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # 登录
-    url(r'^login/', views.login),
+    url(r'^login/', sales.login),
     # 注销
-    url(r'^logout/', views.logout, name='logout'),
+    url(r'^logout/', sales.logout, name='logout'),
     # 注册
-    url(r'^reg/', views.reg),
+    url(r'^reg/', sales.reg),
 
     url(r'^crm/', include('crm.urls')),
 

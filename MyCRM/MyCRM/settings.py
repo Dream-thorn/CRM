@@ -135,3 +135,7 @@ STATICFILES_DIRS = [
 
 # 由于重写了UserProfile表, 所以要重新指定
 AUTH_USER_MODEL = 'crm.UserProfile'
+
+
+# 设置一个用户最多可以有多少个私有客户
+CUSTOMER_MAX_NUM = 5

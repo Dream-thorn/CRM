@@ -124,3 +124,30 @@ class EnrollmentForm(BaseForm):
         # 限制班级只能是意向班级
         self.fields['enrolment_class'].widget.choices = [(i.id, i) for i in self.instance.customer.class_list.all()]
 
+
+# 班级form
+class ClassForm(BaseForm):
+    class Meta:
+        model = models.ClassList
+        fields = '__all__'
+
+
+# 课程form
+class CourseForm(BaseForm):
+    class Meta:
+        model = models.CourseRecord
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # 所选择的班级只能是当前要添加的班级
+        self.fields['re_class'].widget.choices = [(self.instance.re_class_id, self.instance.re_class),]
+        # 限制讲师为当前用户
+        self.fields['teacher'].widget.choices =  [(self.instance.teacher.id, self.instance.teacher),]
+
+# 课程记录form
+class StudyRecordForm(BaseForm):
+    class Meta:
+        model = models.StudyRecord
+        fields = '__all__'

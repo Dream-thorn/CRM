@@ -1,12 +1,14 @@
+from django.db import transaction
 from django.db.models import Q
 from django.http import QueryDict
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from django.contrib import auth
 from django.urls import reverse
 from crm.forms import RegForm, CustomerForm, ConsultRecordForm, EnrollmentForm
 from crm import models
 from utils.pagination import Pagination
 from django.views import View
+from django.conf import settings
 
 
 # 登录
@@ -102,13 +104,13 @@ class CustomerList(View):
         page = Pagination(request, len(all_customer), query_params, each_page_data=10)
 
         # 下一个要跳转的url地址
-        next = self.get_next().urlencode()  # next=%2Fcrm%2Fcustomer_list%2F%3Fquery%3Duser%26page%3D2
+        next_url = self.get_next().urlencode()  # next=%2Fcrm%2Fcustomer_list%2F%3Fquery%3Duser%26page%3D2
 
-        return render(request, 'crm/customer_list.html',
+        return render(request, 'crm/sales/customer_list.html',
                       {'all_customer': all_customer[page.data_start: page.data_end],
                        'all_tag': page.show_li,
                        'user': request.user,
-                       'next': next})
+                       'next': next_url})
 
     def post(self, request):
         # 获取用户选择的操作
@@ -116,7 +118,10 @@ class CustomerList(View):
         # 用反射查看这个操作是否可执行
         if getattr(self, action):
             # 执行这个操作
-            getattr(self, action)()
+            ret = getattr(self, action)()
+
+            if ret:
+                return ret
 
         return self.get(request)
 
@@ -133,13 +138,27 @@ class CustomerList(View):
 
     # 设为私有
     def private(self):
+        # 要设为私有的客户
         ids = self.request.POST.getlist('id')
+
+        # 如果当前用户的私有客户数量加上要设为私有客户的数量大于setting.py中设置的值
+        if self.request.user.customers.count() + len(ids) > settings.CUSTOMER_MAX_NUM:
+            return HttpResponse("已经够多了, 不能太贪心哦")
 
         # 多对一设为私有
         # models.Customer.objects.filter(id__in=ids).update(consultant=self.request.user)
-
         # 一对多设为私有
-        self.request.user.customers.add(*models.Customer.objects.filter(id__in=ids))
+        # self.request.user.customers.add(*models.Customer.objects.filter(id__in=ids))
+
+        # 开始事务
+        with transaction.atomic():
+            # 加行级锁
+            obj_list = models.Customer.objects.filter(id__in=ids, consultant__isnull=True).select_for_update()
+            # 如果客户没有被抢走
+            if len(ids) == len(obj_list):
+                obj_list.update(consultant=self.request.user)
+            else:
+                return HttpResponse("客户被抢走了{}个, 请重新提交!".format(len(ids) - len(obj_list)))
 
     # 删除用户
     def delete(self):
@@ -160,16 +179,15 @@ class CustomerList(View):
     # 获取添加和编辑按钮当前页面的url
     def get_next(self):
         # 获取当前页面的全路径, 包含get参数, 如: /crm/customer_list/?query=user&page=2
-        next = self.request.get_full_path()
+        next_url = self.request.get_full_path()
 
         # 创建QueryDict字典
         qDict = QueryDict()
         # 将这个字典设为可修改
         qDict._mutable = True
-        qDict['next'] = next
+        qDict['next'] = next_url
 
         return qDict
-
 
 
 """
@@ -214,14 +232,14 @@ def customer_add_or_edit(request, edit_id=None):
             form_obj.save()
 
         # 获取要跳转的地址
-        next = request.GET.get('next')
-        if next:
+        next_url = request.GET.get('next')
+        if next_url:
             # 跳转到这个地址
-            return redirect(next)
+            return redirect(next_url)
 
         return redirect(reverse('customer'))
 
-    return render(request, 'crm/customer_add_or_edit.html',
+    return render(request, 'crm/sales/customer_add_or_edit.html',
                   {'form_obj': form_obj,
                    'edit_id': edit_id,
                    'user': request.user})
@@ -243,8 +261,8 @@ class ConsultRecordList(View):
         # 分页功能
         page = Pagination(request, len(all_consult_record), query_params, each_page_data=10)
 
-        return render(request, 'crm/consult_record_list.html',
-                      {'all_consult_record': all_consult_record,
+        return render(request, 'crm/sales/consult_record_list.html',
+                      {'all_consult_record': all_consult_record[page.data_start: page.data_end],
                        'all_tag': page.show_li})
 
     def post(self, request, customer_id):
@@ -276,7 +294,7 @@ def consult_record_add_or_edit(request, edit_id=None):
 
             return redirect(reverse('consult', args=('0',)))
 
-    return render(request, 'crm/consult_record_add_or_edit.html', {'form_obj': form_obj, 'edit_id': edit_id})
+    return render(request, 'crm/sales/consult_record_add_or_edit.html', {'form_obj': form_obj, 'edit_id': edit_id})
 
 
 # 报名记录列表
@@ -294,8 +312,8 @@ class EnrollmentList(View):
         # 分页功能
         page = Pagination(request, len(all_record), query_params, each_page_data=10)
 
-        return render(request, 'crm/enrollment_list.html',
-                      {'all_record': all_record,
+        return render(request, 'crm/sales/enrollment_list.html',
+                      {'all_record': all_record[page.data_start: page.data_end],
                        'all_tag': page.show_li})
 
     def post(self, request, customer_id):
@@ -314,7 +332,6 @@ class EnrollmentList(View):
         models.Enrollment.objects.filter(id__in=ids).delete()
 
 
-
 # 添加或编辑报名记录
 def enrollment_add_or_edit(request, customer_id=None, edit_id=None):
     enrollment_obj = models.Enrollment.objects.filter(id=edit_id).first() or models.Enrollment(customer_id=customer_id)
@@ -331,10 +348,10 @@ def enrollment_add_or_edit(request, customer_id=None, edit_id=None):
                 obj.customer.status = 'signed'
                 obj.customer.save()
 
-                next = request.GET.get('next')
-                if next:
-                    return redirect(next)
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
                 else:
                     return redirect(reverse('enrollment', args=('0',)))
 
-    return render(request, 'crm/enrollment_add_or_edit.html', {'form_obj': form_obj, 'next': request.GET.get('next')})
+    return render(request, 'crm/sales/enrollment_add_or_edit.html', {'form_obj': form_obj, 'next': request.GET.get('next')})

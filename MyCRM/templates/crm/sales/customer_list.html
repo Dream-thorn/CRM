@@ -38,8 +38,11 @@
                     <select class="form-control" name="action">
                         <option selected>---选择操作---</option>
                         <optgroup label="">
-                            <option value="public">设为公有</option>
-                            <option value="private">设置私有</option>
+                            {% if request.path_info == "/crm/customer_list/" %}
+                                <option value="private">设置私有</option>
+                            {% else %}
+                                <option value="public">设为公有</option>
+                            {% endif %}
                         </optgroup>
                         <optgroup label="">
                             <option value="delete">删除</option>
@@ -74,7 +77,8 @@
                             <td><input type="checkbox" value="{{ customer.id }}" name="id"></td>
                             <td>{{ forloop.counter }}</td>
                             <td>
-                                <a href="/crm/customer/edit/{{ customer.id }}/?{{ next }}">{{ customer.qq }}</a>
+                                <a class="btn btn-outline-info btn-sm"
+                                   href="/crm/customer/edit/{{ customer.id }}/?{{ next }}">{{ customer.qq }}</a>
                             </td>
                             <td>{{ customer.name|default:'暂无' }}</td>
                             <td>{{ customer.get_sex_display }}</td>
@@ -85,16 +89,18 @@
                             </td>
                             <td>{{ customer.date }}</td>
                             <td>{{ customer.last_consult_date }}</td>
-                            <td><a href="{% url 'consult' customer.id %}">查看</a></td>
+                            <td><a class="btn btn-info btn-sm" href="{% url 'consult' customer.id %}">查看</a></td>
                             <td>{{ customer.consultant|default:'暂无' }}</td>
                             <td>{{ customer.show_classes }}</td>
                             {% if request.path_info == "/crm/my_customer_list/" %}
                                 <th>
                                     {% if customer.enroll_link == '0' %}
-                                        <a href='/crm/enrollment/add/{{ customer.id }}/?{{ next }}'>报名</a>
+                                        <a class="btn btn-success btn-sm"
+                                           href='/crm/enrollment/add/{{ customer.id }}/?{{ next }}'>报名</a>
                                     {% else %}
-                                        <a href='{% url 'enrollment' customer.id %}'>查看</a>
-                                        <a href='/crm/enrollment/add/{{ customer.id }}/?{{ next }}'>报名</a>
+                                        <a class="btn btn-info btn-sm" href='{% url 'enrollment' customer.id %}'>查看</a>
+                                        <a class="btn btn-success btn-sm"
+                                           href='/crm/enrollment/add/{{ customer.id }}/?{{ next }}'>报名</a>
                                     {% endif %}
                                 </th>
                             {% endif %}

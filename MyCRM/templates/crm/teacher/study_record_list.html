@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block css %}
+    <style>
+        th, tr {
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block username %}
+    {{ user.name }}
+{% endblock %}
+
+{% block content %}
+    <div class="panel panel-default">
+        <div class="panel-heading" style="font-size: 20px;"><b>学习记录</b></div>
+        <hr>
+        <div class="panel-body">
+            <form action="" method="post">
+                {% csrf_token %}
+                <!-- 使用modelformset_factory时要加上 -->
+                {{ form_set.management_form }}
+                <table class="table table-hover table-striped">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>学员</th>
+                        <th>考勤</th>
+                        <th>本节成绩</th>
+                        <th>作业批语</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for form in form_set %}
+                        <tr>
+                            <!-- 使用modelformset_factory时要加上 -->
+                            {{ form.id }}
+                            <td style="display: none">{{ form.student }}</td>
+                            <td style="display: none">{{ form.course_record }}</td>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ form.instance.student.name }}</td>
+                            <td>{{ form.attendance }}</td>
+                            <td>{{ form.score }}</td>
+                            <td>{{ form.homework_note }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <!-- 提交 -->
+                <div class="form-group">
+                    <div class="text-center">
+                        <a href="{% url 'course' '0' %}" class="btn btn-warning">取消</a>&nbsp;&nbsp;
+                        <button type="submit" class="btn btn-success">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $('input:checkbox').click(function () {
+            {#判断是否至少选中一个复选框#}
+            if ($("input:checkbox[name='id']:checked").length > 0) {
+                $('#se').removeClass('invisible')
+            } else {
+                $('#se').addClass('invisible')
+            }
+        })
+    </script>
+{% endblock %}
